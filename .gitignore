@@ -1,0 +1,25 @@
+# 변환 입출력
+input/*
+!input/.gitkeep
+output/*
+!output/.gitkeep
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# 임시
+_tmp/
+*.log

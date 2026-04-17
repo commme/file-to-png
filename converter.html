@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data:; connect-src 'self' blob: https://cdnjs.cloudflare.com;">
+<title>PDF → PNG 변환기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #15151d;
+    --surface-2: #1f1f2b;
+    --border: #2a2a38;
+    --text: #f4f4f5;
+    --text-2: #a1a1aa;
+    --text-3: #71717a;
+    --accent: #818cf8;
+    --accent-2: #c084fc;
+    --success: #4ade80;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Pretendard', -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+    background:
+      radial-gradient(ellipse 800px 500px at 20% 10%, rgba(129,140,248,0.18), transparent),
+      radial-gradient(ellipse 600px 400px at 80% 90%, rgba(192,132,252,0.15), transparent),
+      var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 48px 20px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+  }
+  .logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: grid;
+    place-items: center;
+    font-size: 20px;
+    box-shadow: 0 8px 24px rgba(129,140,248,0.3);
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: var(--text-2);
+    font-size: 14px;
+    margin-bottom: 28px;
+    margin-left: 58px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+  }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 56px 20px;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: var(--surface-2);
+    position: relative;
+    overflow: hidden;
+  }
+  .drop-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(129,140,248,0.05), rgba(192,132,252,0.05));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .drop-zone:hover { border-color: var(--accent); }
+  .drop-zone:hover::before { opacity: 1; }
+  .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(129,140,248,0.1);
+    transform: scale(1.005);
+  }
+  .drop-zone.dragover::before { opacity: 1; }
+  .drop-zone.processing { border-color: var(--success); }
+  .drop-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+    display: block;
+    filter: grayscale(0.3);
+    position: relative;
+  }
+  .drop-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+    position: relative;
+  }
+  .drop-hint {
+    font-size: 13px;
+    color: var(--text-3);
+    position: relative;
+  }
+  input[type="file"] { display: none; }
+
+  /* Options */
+  .options {
+    display: flex;
+    gap: 24px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .option label { font-weight: 500; }
+  select {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  select:hover { border-color: var(--accent); }
+  select:focus { border-color: var(--accent); }
+
+  /* Banner */
+  .banner {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.2);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #fde68a;
+  }
+  .banner code {
+    background: rgba(0,0,0,0.3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12px;
+  }
+
+  /* Progress */
+  .progress {
+    margin-top: 16px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    display: none;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    width: 0;
+    transition: width 0.3s;
+  }
+
+  /* Results */
+  .results { margin-top: 8px; }
+  .file-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+  .file-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .file-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .file-meta {
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 2px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: rgba(74,222,128,0.15);
+    border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 12px;
+    font-size: 11px;
+    color: var(--success);
+    font-weight: 500;
+  }
+
+  .preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .preview {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 1/1.4;
+    background: var(--surface-2);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .preview:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(129,140,248,0.2);
+  }
+  .preview::after {
+    content: '⬇';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .preview:hover::after { opacity: 1; }
+  .preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Buttons */
+  .actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    box-shadow: 0 4px 12px rgba(129,140,248,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(129,140,248,0.4);
+  }
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--text-2);
+    border: 1px solid var(--border);
+    flex: 0 0 auto;
+    padding: 12px 18px;
+  }
+  .btn-secondary:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 32px;
+    color: var(--text-3);
+    font-size: 12px;
+  }
+  .footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="logo">📄</div>
+    <h1>PDF → PNG</h1>
+  </div>
+  <p class="subtitle">PDF를 끌어다 놓으면 즉시 이미지로 변환됩니다 · 파일은 서버에 전송되지 않습니다</p>
+
+  <div class="banner">
+    <span>💡</span>
+    <span>HWP 파일은 브라우저 변환 불가 — <code>convert.py</code> 스크립트를 사용하세요</span>
+  </div>
+
+  <div class="card">
+    <div id="dropZone" class="drop-zone">
+      <span class="drop-icon">📁</span>
+      <div class="drop-text">클릭하거나 PDF 파일을 끌어다 놓으세요</div>
+      <div class="drop-hint">여러 파일 동시 업로드 가능</div>
+      <input type="file" id="fileInput" accept=".pdf" multiple>
+    </div>
+
+    <div class="options">
+      <div class="option">
+        <label>해상도</label>
+        <select id="dpi">
+          <option value="100">100 DPI · 작게</option>
+          <option value="150">150 DPI · 보통</option>
+          <option value="200" selected>200 DPI · 고화질</option>
+          <option value="300">300 DPI · 인쇄급</option>
+        </select>
+      </div>
+      <div class="option">
+        <label>형식</label>
+        <select id="format">
+          <option value="image/png" selected>PNG</option>
+          <option value="image/jpeg">JPEG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="progress" id="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <div class="footer">
+    Built with <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> · 100% 클라이언트 변환<br>
+    <span style="margin-top:6px;display:inline-block;">© 2026 <strong style="color:var(--text-2);">COMMME</strong>. All rights reserved.</span>
+  </div>
+</div>
+
+<script type="module">
+  import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const results = document.getElementById('results');
+  const progress = document.getElementById('progress');
+  const progressBar = document.getElementById('progressBar');
+
+  let convertedFiles = [];
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+  ['dragenter', 'dragover'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+  });
+  ['dragleave', 'drop'].forEach(ev => {
+    dropZone.addEventListener(ev, e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    });
+  });
+  dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+  async function handleFiles(files) {
+    const pdfs = Array.from(files).filter(f => f.name.toLowerCase().endsWith('.pdf'));
+    if (pdfs.length === 0) {
+      alert('PDF 파일만 처리 가능해요.');
+      return;
+    }
+
+    convertedFiles.forEach(f => URL.revokeObjectURL(f.url));
+    convertedFiles = [];
+    results.innerHTML = '';
+    progress.style.display = 'block';
+    progressBar.style.width = '0%';
+    dropZone.classList.add('processing');
+
+    const dpi = parseInt(document.getElementById('dpi').value);
+    const format = document.getElementById('format').value;
+    const ext = format.split('/')[1].replace('jpeg', 'jpg');
+
+    let totalPages = 0;
+    let donePages = 0;
+
+    const pdfDocs = [];
+    for (const file of pdfs) {
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+      totalPages += pdf.numPages;
+      pdfDocs.push({file, pdf});
+    }
+
+    for (const {file, pdf} of pdfDocs) {
+      const stem = file.name.replace(/\.pdf$/i, '');
+      const block = document.createElement('div');
+      block.className = 'file-block';
+
+      const header = document.createElement('div');
+      header.className = 'file-header';
+      const headerInfo = document.createElement('div');
+      const fileName = document.createElement('div');
+      fileName.className = 'file-name';
+      fileName.textContent = `📄 ${stem}`;  // XSS-safe
+      const meta = document.createElement('div');
+      meta.className = 'file-meta';
+      meta.textContent = `변환 중... 0 / ${pdf.numPages}`;
+      headerInfo.append(fileName, meta);
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;"></span>처리중';
+      header.append(headerInfo, badge);
+
+      const grid = document.createElement('div');
+      grid.className = 'preview-grid';
+
+      block.append(header, grid);
+      results.appendChild(block);
+
+      let fileDone = 0;
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const scale = dpi / 72;
+        const viewport = page.getViewport({scale});
+
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext('2d');
+
+        await page.render({canvasContext: ctx, viewport}).promise;
+
+        const blob = await new Promise(r => canvas.toBlob(r, format, 0.95));
+        const url = URL.createObjectURL(blob);
+        const name = pdf.numPages === 1
+          ? `${stem}.${ext}`
+          : `${stem}_p${String(i).padStart(3, '0')}.${ext}`;
+
+        convertedFiles.push({name, blob, url});
+
+        const prev = document.createElement('div');
+        prev.className = 'preview';
+        prev.title = `클릭하면 ${name} 다운로드`;
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = name;  // textContent-equivalent for attribute
+        prev.appendChild(img);
+        prev.onclick = () => downloadOne(name, blob);
+        grid.appendChild(prev);
+
+        donePages++;
+        fileDone++;
+        meta.textContent = `${fileDone} / ${pdf.numPages} 페이지 완료`;
+        progressBar.style.width = (donePages / totalPages * 100) + '%';
+      }
+
+      meta.textContent = `${pdf.numPages} 페이지 · 미리보기 클릭으로 개별 다운로드`;
+      badge.style.background = 'rgba(74,222,128,0.15)';
+      badge.innerHTML = '<span>✓</span>완료';
+    }
+
+    dropZone.classList.remove('processing');
+
+    if (convertedFiles.length > 0) {
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const dlBtn = document.createElement('button');
+      dlBtn.className = 'btn btn-primary';
+      dlBtn.textContent = `⬇ 전체 다운로드 (${convertedFiles.length}개)`;
+      dlBtn.onclick = downloadAll;
+      const rsBtn = document.createElement('button');
+      rsBtn.className = 'btn btn-secondary';
+      rsBtn.textContent = '초기화';
+      rsBtn.onclick = reset;
+      actions.append(dlBtn, rsBtn);
+      results.appendChild(actions);
+    }
+  }
+
+  function downloadOne(name, blob) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+  }
+
+  async function downloadAll() {
+    for (const f of convertedFiles) {
+      const a = document.createElement('a');
+      a.href = f.url;
+      a.download = f.name;
+      a.click();
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
+
+  function reset() {
+    convertedFiles.forEach(f => URL.revokeObjectURL(f.url));
+    convertedFiles = [];
+    results.innerHTML = '';
+    progress.style.display = 'none';
+    progressBar.style.width = '0%';
+    fileInput.value = '';
+  }
+</script>
+</body>
+</html>
