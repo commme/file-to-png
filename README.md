@@ -2,9 +2,11 @@
 
 PDF / HWP 파일을 PNG 이미지로 변환하는 도구. 브라우저 버전과 Python CLI 버전 두 가지를 제공.
 
+🔗 **라이브 데모**: https://commme.github.io/file-to-png/
+
 ## 결과물
 
-- **`converter.html`** — 브라우저에서 드래그 앤 드롭으로 PDF → PNG 변환 (다크 모드 UI)
+- **`index.html`** — 브라우저에서 드래그 앤 드롭으로 PDF → PNG 변환 (다크 모드 UI)
 - **`convert.py`** — 폴더 일괄 변환 Python 스크립트 (PDF + HWP 지원)
 - **`run.bat`** — Windows 더블클릭 실행
 
@@ -13,7 +15,7 @@ PDF / HWP 파일을 PNG 이미지로 변환하는 도구. 브라우저 버전과
 ### 1) 브라우저 (간편)
 
 ```
-converter.html을 더블클릭 → PDF 파일 드래그 → PNG 자동 다운로드
+index.html을 더블클릭 → PDF 파일 드래그 → PNG 자동 다운로드
 ```
 
 설치 불필요, 인터넷 연결만 있으면 됨 (PDF.js CDN 로드).
