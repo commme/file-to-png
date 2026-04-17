@@ -23,3 +23,8 @@ desktop.ini
 # 임시
 _tmp/
 *.log
+
+# 도구 상태 (자동 생성)
+.omc/
+.bkit/
+.claude/

@@ -1,7 +1,0 @@
-{
-  "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cd \\\"projects/productivity/file-to-png\\\" && git init -b main && git config user.name \\\"commme\\\" && git config user.email \\\"commme@users.noreply.github.com\\\" && git add . && git commit -m \\...",
-  "error": "Exit code 1\n/usr/bin/bash: line 8: cd: projects/productivity/file-to-png: No such file or directory",
-  "timestamp": "2026-04-17T05:19:31.510Z",
-  "retry_count": 1
-}
