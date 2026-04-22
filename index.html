@@ -7,33 +7,30 @@
 <title>PDF → PNG 변환기</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #15151d;
-    --surface-2: #1f1f2b;
-    --border: #2a2a38;
-    --text: #f4f4f5;
-    --text-2: #a1a1aa;
-    --text-3: #71717a;
-    --accent: #818cf8;
-    --accent-2: #c084fc;
-    --success: #4ade80;
-    --warning: #fbbf24;
-    --danger: #f87171;
-    --radius: 14px;
-    --radius-sm: 8px;
+    --bg: #fafaf7;
+    --ink: #0a0a0a;
+    --ink-2: #666666;
+    --ink-3: #999999;
+    --accent: #ddff00;
+    --surface: #ffffff;
+    --surface-2: #f0f0eb;
+    --danger: #ff3333;
+    --success: #00cc44;
+    --warning: #ffaa00;
+    --bw: 3px;
+    --bw-thin: 2px;
+    --shadow: 8px 8px 0 #0a0a0a;
+    --shadow-sm: 4px 4px 0 #0a0a0a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
     font-family: 'Pretendard', -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
-    background:
-      radial-gradient(ellipse 800px 500px at 20% 10%, rgba(129,140,248,0.18), transparent),
-      radial-gradient(ellipse 600px 400px at 80% 90%, rgba(192,132,252,0.15), transparent),
-      var(--bg);
-    color: var(--text);
+    background: var(--bg);
+    color: var(--ink);
     min-height: 100vh;
     padding: 48px 20px;
     line-height: 1.5;
@@ -42,6 +39,10 @@
   .container {
     max-width: 720px;
     margin: 0 auto;
+  }
+  .mono {
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    letter-spacing: 0;
   }
 
   /* Header */
@@ -52,91 +53,96 @@
     margin-bottom: 8px;
   }
   .logo {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    width: 48px;
+    height: 48px;
+    border-radius: 0;
+    background: var(--accent);
+    border: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow-sm);
     display: grid;
     place-items: center;
-    font-size: 20px;
-    box-shadow: 0 8px 24px rgba(129,140,248,0.3);
+    font-size: 22px;
   }
   h1 {
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    text-transform: uppercase;
   }
   .subtitle {
-    color: var(--text-2);
-    font-size: 14px;
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    color: var(--ink-2);
+    font-size: 12px;
     margin-bottom: 28px;
-    margin-left: 58px;
+    margin-left: 62px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
   }
 
   /* Card */
   .card {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: var(--bw) solid var(--ink);
+    border-radius: 0;
+    box-shadow: var(--shadow);
     padding: 24px;
-    margin-bottom: 16px;
-    backdrop-filter: blur(10px);
+    margin-bottom: 20px;
   }
 
   /* Drop zone */
   .drop-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
+    border: var(--bw) dashed var(--ink);
+    border-radius: 0;
     padding: 56px 20px;
     text-align: center;
-    transition: all 0.2s ease;
+    transition: all 0.12s ease;
     cursor: pointer;
     background: var(--surface-2);
     position: relative;
     overflow: hidden;
   }
-  .drop-zone::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(129,140,248,0.05), rgba(192,132,252,0.05));
-    opacity: 0;
-    transition: opacity 0.3s;
+  .drop-zone:hover {
+    background: var(--accent);
   }
-  .drop-zone:hover { border-color: var(--accent); }
-  .drop-zone:hover::before { opacity: 1; }
+  .drop-zone:hover .drop-hint,
+  .drop-zone.dragover .drop-hint {
+    color: var(--ink);
+  }
   .drop-zone.dragover {
-    border-color: var(--accent);
-    background: rgba(129,140,248,0.1);
-    transform: scale(1.005);
+    background: var(--accent);
+    border-style: solid;
   }
-  .drop-zone.dragover::before { opacity: 1; }
   .drop-zone.processing { border-color: var(--success); }
   .drop-icon {
     font-size: 42px;
     margin-bottom: 12px;
     display: block;
-    filter: grayscale(0.3);
     position: relative;
   }
   .drop-text {
     font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
+    font-weight: 700;
+    color: var(--ink);
     margin-bottom: 6px;
     position: relative;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
   }
   .drop-hint {
-    font-size: 13px;
-    color: var(--text-3);
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    color: var(--ink-2);
     position: relative;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   input[type="file"] { display: none; }
 
   /* Options */
   .options {
     display: flex;
-    gap: 24px;
+    gap: 16px;
     margin-top: 18px;
     flex-wrap: wrap;
   }
@@ -144,58 +150,70 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 13px;
-    color: var(--text-2);
+    font-size: 12px;
+    color: var(--ink);
   }
-  .option label { font-weight: 500; }
+  .option label {
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
   select {
     padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--ink);
+    border-radius: 0;
     font-size: 13px;
-    background: var(--surface-2);
-    color: var(--text);
-    font-family: inherit;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    font-weight: 600;
     cursor: pointer;
     outline: none;
-    transition: border-color 0.15s;
+    transition: all 0.12s;
+    box-shadow: var(--shadow-sm);
   }
-  select:hover { border-color: var(--accent); }
-  select:focus { border-color: var(--accent); }
+  select:hover { background: var(--accent); }
+  select:focus { background: var(--accent); }
 
   /* Banner */
   .banner {
     display: flex;
     gap: 10px;
     align-items: flex-start;
-    background: rgba(251,191,36,0.08);
-    border: 1px solid rgba(251,191,36,0.2);
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    margin-bottom: 16px;
+    background: var(--accent);
+    border: var(--bw) solid var(--ink);
+    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
+    border-radius: 0;
+    margin-bottom: 20px;
     font-size: 13px;
-    color: #fde68a;
+    color: var(--ink);
+    font-weight: 500;
   }
   .banner code {
-    background: rgba(0,0,0,0.3);
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-family: 'SF Mono', Consolas, monospace;
+    background: var(--ink);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 0;
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
     font-size: 12px;
+    font-weight: 600;
   }
 
   /* Progress */
   .progress {
     margin-top: 16px;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
+    height: 12px;
+    background: var(--surface-2);
+    border: var(--bw-thin) solid var(--ink);
+    border-radius: 0;
     overflow: hidden;
     display: none;
   }
   .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background: var(--accent);
     width: 0;
     transition: width 0.3s;
   }
@@ -204,74 +222,83 @@
   .results { margin-top: 8px; }
   .file-block {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: var(--bw) solid var(--ink);
+    border-radius: 0;
+    box-shadow: var(--shadow);
     padding: 18px;
-    margin-bottom: 12px;
+    margin-bottom: 20px;
   }
   .file-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
   }
   .file-name {
-    font-weight: 600;
+    font-weight: 700;
     font-size: 14px;
-    color: var(--text);
+    color: var(--ink);
     display: flex;
     align-items: center;
     gap: 8px;
   }
   .file-meta {
-    font-size: 12px;
-    color: var(--text-3);
-    margin-top: 2px;
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
   .badge {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
-    background: rgba(74,222,128,0.15);
-    border: 1px solid rgba(74,222,128,0.3);
-    border-radius: 12px;
-    font-size: 11px;
-    color: var(--success);
-    font-weight: 500;
+    padding: 4px 10px;
+    background: var(--accent);
+    border: var(--bw-thin) solid var(--ink);
+    border-radius: 0;
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    font-size: 10px;
+    color: var(--ink);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 
   .preview-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 8px;
+    gap: 10px;
   }
   .preview {
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    border: var(--bw-thin) solid var(--ink);
+    border-radius: 0;
     overflow: hidden;
     cursor: pointer;
     aspect-ratio: 1/1.4;
     background: var(--surface-2);
-    transition: all 0.2s;
+    transition: all 0.12s;
     position: relative;
   }
   .preview:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(129,140,248,0.2);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--ink);
   }
   .preview::after {
     content: '⬇';
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.6);
-    color: white;
+    background: rgba(10,10,10,0.7);
+    color: var(--accent);
     display: grid;
     place-items: center;
     font-size: 24px;
+    font-weight: 700;
     opacity: 0;
-    transition: opacity 0.15s;
+    transition: opacity 0.12s;
   }
   .preview:hover::after { opacity: 1; }
   .preview img {
@@ -284,56 +311,66 @@
   /* Buttons */
   .actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     margin-top: 16px;
+    flex-wrap: wrap;
   }
   .btn {
     flex: 1;
-    padding: 12px 16px;
-    border: none;
-    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    border: var(--bw) solid var(--ink);
+    border-radius: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.1s ease;
     font-family: inherit;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
+    box-shadow: var(--shadow-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+  }
+  .btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0 var(--ink);
   }
   .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: white;
-    box-shadow: 0 4px 12px rgba(129,140,248,0.3);
-  }
-  .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(129,140,248,0.4);
+    background: var(--accent);
+    color: var(--ink);
   }
   .btn-secondary {
-    background: var(--surface-2);
-    color: var(--text-2);
-    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
     flex: 0 0 auto;
-    padding: 12px 18px;
-  }
-  .btn-secondary:hover {
-    background: var(--border);
-    color: var(--text);
+    padding: 14px 20px;
   }
 
   /* Footer */
   .footer {
     text-align: center;
-    margin-top: 32px;
-    color: var(--text-3);
-    font-size: 12px;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: var(--bw-thin) solid var(--ink);
+    font-family: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+    color: var(--ink-2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
   .footer a {
-    color: var(--accent);
-    text-decoration: none;
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
+  .footer strong { color: var(--ink); }
 </style>
 </head>
 <body>
