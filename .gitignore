@@ -1,6 +1,7 @@
 # 변환 입출력
 input/*
 !input/.gitkeep
+!input/claude-pixel-mascot.svg
 output/*
 !output/.gitkeep
 
